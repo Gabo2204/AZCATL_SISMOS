@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: sismos-db
+    restart: always
+    environment:
+      POSTGRES_DB: datawarehouse
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/import_data.sql:/docker-entrypoint-initdb.d/02_import_data.sql:ro
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    container_name: sismos-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: datawarehouse
+      DB_USER: postgres
+      DB_PASS: secretpassword
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

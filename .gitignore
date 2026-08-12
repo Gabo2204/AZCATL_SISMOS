@@ -1,0 +1,5 @@
+/data
+/db
+/logs
+/node_modules
+*.db
